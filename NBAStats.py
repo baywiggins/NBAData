@@ -11,6 +11,7 @@ END_MONTH = 1
 END_DAY = 1
 
 OUTPUT_TYPE = OutputType.JSON
+OUTPUT_FILE = 'data/output.csv'
 
 needs_header = True
 
@@ -24,6 +25,6 @@ for year in YEARS:
 
             df['date'] = f"{month}-{day}-{year}"
 
-            df.to_csv('output.csv', mode='a', index=False, header=True if needs_header else False)
+            df.to_csv(OUTPUT_FILE, mode='a', index=False, header=True if needs_header else False)
             needs_header = False
         
