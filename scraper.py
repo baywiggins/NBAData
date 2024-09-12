@@ -1,26 +1,40 @@
-from basketball_reference_web_scraper import client
-from basketball_reference_web_scraper.data import League
-from basketball_reference_web_scraper.data import OutputType
-import pandas as pd
-from lxml.etree import ParseError
+from bs4 import BeautifulSoup
+import requests
 
-YEARS = [2024]
-END_MONTH = 1
-END_DAY = 1
+r = requests.get("https://www.basketball-reference.com/leagues/NBA_2023_ratings.html")
 
-OUTPUT_TYPE = OutputType.JSON
+soup = BeautifulSoup(r.content, 'html.parser')
 
-needs_header = True
+# Find all the rows in the table
+# Find the table rows (all rows except for header rows)
+rows = soup.find_all('tr')
 
-for year in YEARS:
-    for month in range(1, END_MONTH + 1):
-        for day in range(1, END_DAY + 1):
-            df = pd.read_json(client.player_box_scores(day=day, month=month, year=year, output_type=OUTPUT_TYPE))
+# Initialize a list to store extracted data
+data = []
 
-            df.drop(columns=["slug"], inplace=True)
+# Iterate through each row
+for row in rows:
+    # Find all 'td' elements in the row (data cells)
+    cols = row.find_all('td')
 
-            df['date'] = f"{month}-{day}-{year}"
-
-            df.to_csv('output.csv', mode='a', index=False, header=True if needs_header else False)
-            needs_header = False
+    # Check if the row contains the correct number of columns
+    if len(cols) > 0:
+        # Extract team name, def_rtg, and def_rtg_adj
+        print(cols)
+        team_name = cols[0].get_text(strip=True)
+        def_rtg = cols[9].get_text(strip=True)
+        def_rtg_adj = cols[13].get_text(strip=True)
         
+        # Append the extracted data to the list
+        data.append({'team': team_name, 'def_rtg': def_rtg, 'def_rtg_adj': def_rtg_adj})
+
+# Display the extracted data
+for entry in data:
+    print(entry)
+
+
+# # Extract team names and defensive ratings
+# for row in rows:
+#     team_name = row.find('td', {'data-stat': 'team_name'}).text
+#     def_rtg = row.find('td', {'data-stat': 'def_rtg'}).text
+#     print(f'Team: {team_name}, Defensive Rating: {def_rtg}')
