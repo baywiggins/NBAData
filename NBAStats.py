@@ -19,6 +19,16 @@ needs_header = True
 with open('data/def_rating.json') as file:
     def_rating_data = json.load(file)
 
+def add_defensive_ratings(row):
+    team_def_rtg = def_rating_data[row['opponent']]
+    year = int(row['date'].split("-")[-1])
+    
+    for i in team_def_rtg:
+        if i['year'] == year:
+            return i['def_rtg'], i['def_rtg_adj']
+    
+    return -1, -1
+
 
 for year in YEARS:
     for month in range(1, END_MONTH + 1):
@@ -28,6 +38,9 @@ for year in YEARS:
             df.drop(columns=["slug"], inplace=True)
 
             df['date'] = f"{month}-{day}-{year}"
+
+            df[['def_rtg', 'def_rtg_adj']] = df.apply(add_defensive_ratings, axis=1, result_type="expand")
+            
 
             df.to_csv(OUTPUT_FILE, mode='a', index=False, header=True if needs_header else False)
             needs_header = False
