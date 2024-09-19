@@ -1,23 +1,14 @@
-import pandas as pd
+from basketball_reference_web_scraper import client
+from basketball_reference_web_scraper.data import OutputType
+import pandas
 import json
+import sys
+from lxml.etree import ParserError
 
-df = pd.read_csv('data/output.csv')
 
-with open("data/def_rating.json", "r") as file:
-    data = json.load(file)
+x = json.loads(client.player_box_scores(day=35, month=5, year=2024, output_type=OutputType.JSON))
 
-# Must return 
-def add_defensive_ratings(row):
-    team_def_rtg = data[row['opponent']]
-    year = int(row['date'].split("-")[-1])
-    
-    for i in team_def_rtg:
-        if i['year'] == year:
-            return i['def_rtg'], i['def_rtg_adj']
-    
-    return -1, -1
-    
 
-df[["def_rtg", "def_rtg_adj"]] = df.apply(add_defensive_ratings, axis=1, result_type="expand")
+df = pandas.DataFrame(x)
 
 print(df)

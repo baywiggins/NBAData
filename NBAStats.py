@@ -2,19 +2,20 @@ from basketball_reference_web_scraper import client
 from basketball_reference_web_scraper.data import League
 from basketball_reference_web_scraper.data import OutputType
 import pandas as pd
-from lxml.etree import ParseError
+from lxml.etree import ParserError
 import dotenv
 import os
 import json
 
-YEARS = [2024]
-END_MONTH = 1
-END_DAY = 1
+YEARS = [2023]
+MONTHS = [1, 2, 3, 4, 5, 6, 10, 11, 12]
+# MONTHS = [6]
+END_DAY = 31
 
 OUTPUT_TYPE = OutputType.JSON
 OUTPUT_FILE = 'data/output.csv'
 
-needs_header = True
+needs_header = False
 
 with open('data/def_rating.json') as file:
     def_rating_data = json.load(file)
@@ -31,9 +32,16 @@ def add_defensive_ratings(row):
 
 
 for year in YEARS:
-    for month in range(1, END_MONTH + 1):
-        for day in range(1, END_DAY + 1):
-            df = pd.read_json(client.player_box_scores(day=day, month=month, year=year, output_type=OUTPUT_TYPE))
+    for month in MONTHS:
+        for day in range(4, END_DAY + 1):
+            try:
+                j = json.loads(client.player_box_scores(day=day, month=month, year=year, output_type=OUTPUT_TYPE))
+                if not j:
+                    continue
+            except ParserError:
+                continue
+
+            df = pd.DataFrame(j)
 
             df.drop(columns=["slug"], inplace=True)
 
